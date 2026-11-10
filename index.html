@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Loreto · Tarjeta de fidelización</title>
+<meta name="theme-color" content="#1b1b1b">
+<style>
+:root{--bg:#f4f1ec;--card:#fff;--ink:#1b1b1b;--mut:#6b6b6b;--acc:#b8862b;--acc2:#1b1b1b;--line:#e3ded5;--ok:#2e7d4f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121212;--card:#1e1e1e;--ink:#f2efe9;--mut:#9a958b;--acc:#d9a441;--acc2:#f2efe9;--line:#333;--ok:#5cc58a}}
+:root[data-theme="dark"]{--bg:#121212;--card:#1e1e1e;--ink:#f2efe9;--mut:#9a958b;--acc:#d9a441;--acc2:#f2efe9;--line:#333;--ok:#5cc58a}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:480px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0 2px}
+.sub{color:var(--mut);font-size:14px;margin:0 0 14px}
+.tabs{display:flex;gap:6px;background:var(--card);padding:4px;border-radius:12px;border:1px solid var(--line);margin-bottom:14px}
+.tabs button{flex:1;border:0;background:none;color:var(--mut);padding:10px;border-radius:9px;font-size:15px;font-weight:600}
+.tabs button.on{background:var(--acc2);color:var(--bg)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:16px}
+.btn{border:0;background:var(--acc);color:#1b1b1b;font-weight:700;padding:12px 16px;border-radius:10px;font-size:15px;width:100%;margin-top:12px}
+.btn.s{width:auto;margin:0;padding:8px 12px;font-size:14px}
+.btn.g{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.ok{background:var(--ok);color:#fff}
+.grid{display:grid;gap:8px;margin:14px 0}
+.st{aspect-ratio:1;border-radius:50%;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--mut)}
+.st.f{border:2px solid var(--acc);background:var(--acc);color:#1b1b1b}
+.st.gift{border-color:var(--acc)}
+.big{font-size:20px;font-weight:700}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row .n{font-weight:600}.row .p{font-size:13px;color:var(--mut)}
+.badge{display:inline-block;background:var(--ok);color:#fff;font-size:12px;padding:3px 8px;border-radius:99px;margin-left:6px}
+.msg{font-size:14px;color:var(--ok);min-height:20px;margin-top:8px}
+.err{color:#c0392b}
+.hide{display:none}
+.link{background:none;border:0;color:var(--mut);text-decoration:underline;font-size:13px;padding:8px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="shopName">Loreto</h1>
+  <p class="sub" id="shopSub"></p>
+  <div class="card hide" id="offline"><div class="sub" style="margin:0">Falta pegar la configuración de Firebase en este archivo (ver LEEME.md).</div></div>
+  <div class="tabs">
+    <button id="t1" class="on" onclick="tab(1)">Mi tarjeta</button>
+    <button id="t2" onclick="tab(2)">Barbero</button>
+  </div>
+
+  <section id="v1">
+    <div class="card" id="findBox">
+      <div class="big">Consultá tu tarjeta</div>
+      <label for="ph">Tu teléfono</label>
+      <input id="ph" type="tel" inputmode="tel" placeholder="Ej: 1155551234">
+      <button class="btn" onclick="find()">Ver mis sellos</button>
+      <div class="msg err" id="fmsg"></div>
+    </div>
+    <div class="card hide" id="myCard">
+      <div class="big" id="cName"></div>
+      <div class="sub" id="cInfo"></div>
+      <div class="grid" id="cGrid"></div>
+      <div id="cStatus"></div>
+      <button class="link" onclick="closeCard()">Cambiar de cliente</button>
+    </div>
+  </section>
+
+  <section id="v2" class="hide">
+    <div class="card hide" id="lock">
+      <div class="big">Acceso del barbero</div>
+      <label for="em">Email</label><input id="em" type="email" autocomplete="username">
+      <label for="pw">Contraseña</label><input id="pw" type="password" autocomplete="current-password">
+      <button class="btn" onclick="login()">Entrar</button>
+      <div class="msg err" id="lmsg"></div>
+    </div>
+    <div id="panel" class="hide">
+      <div class="card">
+        <div class="big">Nuevo cliente</div>
+        <label for="nn">Nombre</label><input id="nn" placeholder="Nombre">
+        <label for="np">Teléfono</label><input id="np" type="tel" inputmode="tel" placeholder="Teléfono">
+        <button class="btn" onclick="addClient()">Crear tarjeta</button>
+        <div class="msg" id="amsg"></div>
+      </div>
+      <div class="card">
+        <div class="big">Clientes</div>
+        <input id="q" placeholder="Buscar por nombre o teléfono" oninput="renderList()" style="margin:10px 0">
+        <div id="list"></div>
+      </div>
+      <div class="card">
+        <div class="big">Ajustes</div>
+        <label for="sn">Nombre de la barbería</label><input id="sn">
+        <label for="s5">Premio en el 5.º corte</label><input id="s5">
+        <label for="s10">Premio en el 10.º corte</label><input id="s10">
+        <button class="btn" onclick="saveCfg()">Guardar ajustes</button>
+        <div class="msg" id="smsg"></div>
+        <button class="btn g" onclick="logout()">Cerrar sesión</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import{getFirestore,doc,collection,getDoc,setDoc,updateDoc,onSnapshot}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// ====== Configuración de Firebase de Loreto ======
+var firebaseConfig={
+  apiKey:"AIzaSyANxR4y0cRsN9Xeuy-wwrKOHJqYiWNT4XI",
+  authDomain:"loreto-fideliza.firebaseapp.com",
+  projectId:"loreto-fideliza",
+  storageBucket:"loreto-fideliza.firebasestorage.app",
+  messagingSenderId:"571670725354",
+  appId:"1:571670725354:web:009fbbc7889b9ee3db4d93"
+};
+// =========================================================================
+
+var fs=null,auth=null;
+function snapOf(s){return{id:s.id,exists:s.exists(),data:function(){return s.data()}}}
+function makeDb(){return{
+  doc:function(path){var r=doc(fs,path);return{
+    get:function(){return getDoc(r).then(snapOf)},
+    set:function(d){return setDoc(r,d)},
+    update:function(d){return updateDoc(r,d)},
+    onSnapshot:function(n,e){return onSnapshot(r,function(s){n(snapOf(s))},e)}}},
+  collection:function(path){var r=collection(fs,path);return{
+    onSnapshot:function(n,e){return onSnapshot(r,function(q){n({docs:q.docs.map(snapOf)})},e)}}}
+}}
+
+var DEF={shop:"Loreto",goal:10,perk5:"10% off",perk10:"50% off"};
+var cfg=Object.assign({},DEF),db=null,isAdmin=false,clients=[],curId=null,curData=null,unCur=null;
+function $(i){return document.getElementById(i)}
+function esc(t){var d=document.createElement("div");d.textContent=t;return d.innerHTML}
+function norm(p){return String(p).replace(/\D/g,"")}
+
+function head(){
+  $("shopName").textContent="✂ "+cfg.shop;
+  $("shopSub").textContent="Tu 5.º corte tiene "+cfg.perk5+" y el 10.º tiene "+cfg.perk10;
+  document.title=cfg.shop+" · Tarjeta";
+}
+function tab(n){
+  $("v1").classList.toggle("hide",n!=1);$("v2").classList.toggle("hide",n!=2);
+  $("t1").classList.toggle("on",n==1);$("t2").classList.toggle("on",n==2);
+  if(n==2&&db){$("panel").classList.toggle("hide",!isAdmin);$("lock").classList.toggle("hide",isAdmin)}
+  if(n==2&&!db){$("lock").classList.remove("hide")}
+}
+function grid(el,st){
+  el.innerHTML="";
+  for(var i=1;i<=cfg.goal;i++){
+    var d=document.createElement("div"),last=i==cfg.goal;
+    var perk=i==5?cfg.perk5:(last?cfg.perk10:"");
+    d.className="st"+(i<=st?" f":"")+(perk&&i>st?" gift":"");
+    d.style.flexDirection="column";d.style.fontSize=perk?"11px":"20px";d.style.fontWeight="700";
+    d.textContent=i<=st?"✂":(perk?"🎁":i);
+    if(perk){var t=document.createElement("div");t.style.fontSize="10px";t.textContent=perk;d.appendChild(t)}
+    el.appendChild(d);
+  }
+  el.style.gridTemplateColumns="repeat(5,1fr)";
+}
+function find(){
+  if(!db){$("fmsg").textContent="No hay conexión con la base de datos.";return}
+  var p=norm($("ph").value);
+  if(p.length<4){$("fmsg").textContent="Ingresá tu teléfono";return}
+  $("fmsg").textContent="Buscando…";
+  db.doc("clients/"+p).get().then(function(s){
+    if(!s.exists){$("fmsg").textContent="No encontramos esa tarjeta. Pedile al barbero que te cree una.";return}
+    $("fmsg").textContent="";curId=p;
+    if(unCur)unCur();
+    unCur=db.doc("clients/"+p).onSnapshot(function(sn){if(sn.exists){curData=sn.data();showCard()}},function(){});
+  }).catch(function(){$("fmsg").textContent="No pudimos consultar. Probá de nuevo."});
+}
+function showCard(){
+  if(!curData)return;
+  var st=curData.stamps||0;
+  $("findBox").classList.add("hide");$("myCard").classList.remove("hide");
+  $("cName").textContent="Hola, "+curData.name;
+  $("cInfo").textContent="Tarjetas completadas: "+(curData.done||0);
+  grid($("cGrid"),st);
+  var next=st+1,msg="";
+  if(st>=cfg.goal)msg='<div class="big" style="color:var(--ok)">🎉 ¡Completaste tu tarjeta!</div><p class="sub">Tu próximo corte arranca una tarjeta nueva.</p>';
+  else if(next==5)msg='<div class="big" style="color:var(--ok)">🎁 Tu próximo corte tiene '+esc(cfg.perk5)+'</div><p class="sub">Ya tenés '+st+' de '+cfg.goal+' sellos.</p>';
+  else if(next==cfg.goal)msg='<div class="big" style="color:var(--ok)">🎁 Tu próximo corte tiene '+esc(cfg.perk10)+'</div><p class="sub">Ya tenés '+st+' de '+cfg.goal+' sellos.</p>';
+  else{var to=next<5?5:cfg.goal,pk=next<5?cfg.perk5:cfg.perk10,l=to-st;msg='<div class="big">'+st+' de '+cfg.goal+' sellos</div><p class="sub">Con '+(l==1?"1 corte más":l+" cortes más")+' llegás al corte con '+esc(pk)+'</p>'}
+  $("cStatus").innerHTML=msg;
+}
+function closeCard(){if(unCur){unCur();unCur=null}curId=null;curData=null;$("myCard").classList.add("hide");$("findBox").classList.remove("hide");$("ph").value=""}
+
+function addClient(){
+  var n=$("nn").value.trim(),p=norm($("np").value),m=$("amsg");m.className="msg err";
+  if(!n||p.length<4){m.textContent="Completá nombre y teléfono";return}
+  if(clients.some(function(c){return c.id==p})){m.textContent="Ese teléfono ya tiene tarjeta";return}
+  db.doc("clients/"+p).set({name:n,phone:p,stamps:0,done:0}).then(function(){
+    $("nn").value="";$("np").value="";m.className="msg";m.textContent="Tarjeta creada para "+n;
+  }).catch(function(){m.textContent="No se pudo guardar"});
+}
+function stamp(id,d){
+  var c=clients.filter(function(x){return x.id==id})[0];if(!c)return;
+  var st=c.stamps||0,upd;
+  if(d>0&&st>=cfg.goal)upd={stamps:1,done:(c.done||0)+1};
+  else upd={stamps:Math.max(0,Math.min(cfg.goal,st+d))};
+  db.doc("clients/"+id).update(upd).catch(function(){alert("No se pudo guardar")});
+}
+function renderList(){
+  var q=$("q").value.toLowerCase(),box=$("list");box.innerHTML="";
+  var arr=clients.filter(function(c){return !q||String(c.name).toLowerCase().indexOf(q)>-1||c.id.indexOf(q)>-1});
+  arr.sort(function(a,b){return String(a.name).localeCompare(String(b.name))});
+  if(!arr.length){box.innerHTML='<p class="sub">Sin clientes todavía.</p>';return}
+  arr.forEach(function(c){
+    var st=c.stamps||0,nx=st+1,tag="",r=document.createElement("div");r.className="row";
+    if(st<cfg.goal&&nx==5)tag=cfg.perk5;else if(st<cfg.goal&&nx==cfg.goal)tag=cfg.perk10;
+    r.innerHTML='<div><div class="n">'+esc(c.name)+(tag?'<span class="badge">Próximo corte: '+esc(tag)+'</span>':'')+'</div><div class="p">'+esc(c.id)+' · '+st+'/'+cfg.goal+'</div></div><div style="display:flex;gap:6px"></div>';
+    var b=r.lastChild,m=document.createElement("button");
+    m.className="btn s g";m.textContent="−";m.onclick=function(){stamp(c.id,-1)};b.appendChild(m);
+    var a=document.createElement("button");
+    a.className="btn s";a.textContent=st>=cfg.goal?"Nueva tarjeta":"+ Sello";a.onclick=function(){stamp(c.id,1)};
+    b.appendChild(a);box.appendChild(r);
+  });
+}
+function fillCfg(){$("sn").value=cfg.shop;$("s5").value=cfg.perk5;$("s10").value=cfg.perk10}
+function saveCfg(){
+  var m=$("smsg");m.className="msg err";
+  var n={shop:$("sn").value.trim()||cfg.shop,goal:10,perk5:$("s5").value.trim()||cfg.perk5,perk10:$("s10").value.trim()||cfg.perk10};
+  db.doc("config/main").set(n).then(function(){m.className="msg";m.textContent="Ajustes guardados"}).catch(function(){m.textContent="No se pudo guardar"});
+}
+function afterCfg(){head();if(isAdmin){renderList()}if(curData)showCard()}
+
+
+function login(){
+  var m=$("lmsg");m.textContent="";
+  signInWithEmailAndPassword(auth,$("em").value.trim(),$("pw").value).then(function(){$("pw").value=""}).catch(function(){m.textContent="Email o contraseña incorrectos"});
+}
+function logout(){signOut(auth)}
+
+var unClients=null;
+function init(){
+  head();
+  if(firebaseConfig.apiKey.indexOf("PEGA")===0){$("offline").classList.remove("hide");return}
+  var app=initializeApp(firebaseConfig);fs=getFirestore(app);auth=getAuth(app);db=makeDb();
+  var first=true;
+  db.doc("config/main").onSnapshot(function(s){
+    if(s.exists)cfg=Object.assign({},DEF,s.data());
+    afterCfg();
+    if(isAdmin&&first)fillCfg();
+    first=false;
+  },function(){});
+  onAuthStateChanged(auth,function(u){
+    isAdmin=!!u;
+    if(unClients){unClients();unClients=null}
+    if(isAdmin){
+      fillCfg();
+      unClients=db.collection("clients").onSnapshot(function(sn){
+        clients=sn.docs.map(function(d){return Object.assign({id:d.id},d.data())});
+        renderList();
+      },function(){});
+    }else{clients=[];renderList()}
+    if(!$("v2").classList.contains("hide"))tab(2);
+  });
+}
+Object.assign(window,{tab:tab,find:find,closeCard:closeCard,addClient:addClient,renderList:renderList,saveCfg:saveCfg,login:login,logout:logout});
+init();
+</script>
+</body>
+</html>
